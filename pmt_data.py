@@ -54,8 +54,8 @@ def read_data():
                 data[name] = arr
             elif name=='time':
                 data[name] = [arr]*nchan
-        data['voltage'] = ['V: {:.2e} ({:.2e})'.format(m,s) for m,s in zip(data['Vmeas'], data['Vset'])]
-        data['current'] = ['I: {:.2e} ({:.2e})'.format(m,s) for m,s in zip(data['Cmeas'], data['Cset'])]
+        data['voltage'] = ['V: {:.2e} ({:.2e})'.format(m,s) if dstore['live'] else 'V: NA' for m,s in zip(data['Vmeas'], data['Vset'])]
+        data['current'] = ['I: {:.2e} ({:.2e})'.format(m,s) if dstore['live'] else 'I: NA' for m,s in zip(data['Cmeas'], data['Cset'])]
         data['vdiff'] = [abs((m-s)/s) if s else 0. for m,s in zip(data['Vmeas'], data['Vset'])]
         data['idiff'] = [abs((m-s)/s) if s else 0. for m,s in zip(data['Cmeas'], data['Cset'])]
         data['vcolor'] = ['green' if d<YELLOW else 'yellow' if d<RED else 'red' for d in data['vdiff']]

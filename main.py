@@ -95,6 +95,7 @@ def build_layout():
     p.axis.major_label_standoff = 0
     p.outline_line_width = 7
     p.outline_line_alpha = 0.3
+    p.title.text_font_size = "25px"
     #p.legend.orientation = "horizontal"
     #p.legend.location ="top_center"
     lo = column(top,p)
@@ -113,12 +114,13 @@ def status_update():
     for p in plots:
         if pmt_data.dstore['live']:
             p.outline_line_color = "green"
-            p.title = Title(text='PMT HV Status: Online')
+            p.title.text = 'PMT HV Status: Online'
+
         else:
             p.outline_line_color = "red"
-            p.title = Title(text='PMT HV Status: Offline',
-                            background_fill_alpha=0.4,
-                             background_fill_color='red')
+            p.title.text='PMT HV Status: Offline'
+            p.title.background_fill_alpha=0.4
+            p.title.background_fill_color='red'
     #log.info(str(dsource.data))
 for _ in range(20):
     if len(pmt_data.dstore['latest_values']):
