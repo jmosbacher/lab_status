@@ -3,7 +3,7 @@ import pandas as pd
 import logging
 from bokeh.io import curdoc
 from bokeh.layouts import row, column, layout
-from bokeh.models import ColumnDataSource
+from bokeh.models import ColumnDataSource, Title
 from bokeh.models.widgets import PreText, Select
 from bokeh.plotting import figure
 from bokeh.io import output_file, show
@@ -46,7 +46,7 @@ YSIZE = 15
 TITLE = 'PMT HV Status'
 props = {}
 dsource = ColumnDataSource()
-
+plots = []
 doc = curdoc()
 def build_layout():
     head = Div(text=static_divs.header, width=800, height=300)
@@ -55,6 +55,7 @@ def build_layout():
     yrange = [max(dsource.data['row'])+.5, 0.5]
     p = figure(plot_width=XSIZE*(len(dsource.data['column'])+1), plot_height=YSIZE*(len(dsource.data['row'])+1), title=TITLE,
            x_range=xrange, y_range=yrange, toolbar_location=None, tools="")
+    plots.append(p)
     p.rect('column', 'row', 0.9, 0.9, source=dsource,color='grey', fill_alpha=0.5,)
     text_props = {"source": dsource, "text_align": "left", "text_baseline": "middle"}
     def x(dx):
@@ -65,9 +66,16 @@ def build_layout():
     r1.glyph.text_font_size = '8pt'
     r1 = p.text(x=x(-0.4), y=y(0.2), text='current', text_color='icolor', **text_props)
     r1.glyph.text_font_size = '8pt'
-    r1 = p.text(x=x(-0.4), y=y(-0.3), text='channel', **text_props)
+    r1 = p.text(x=x(-0.4), y=y(-0.3), text='channel',text_color='ccolor', **text_props)
     r1.glyph.text_font_style="bold"
-
+    # r1 = p.circle(x=x(-0.35), y=y(-0.3), line_color='ccolor',alpha=0.2, source=dsource)
+    # r1.glyph.fill_color= 'blue'
+    # r1.glyph.line_width = 3
+    # r1.glyph.size = 25
+    r1 = p.text(x=x(-0.2), y=y(-0.3), text='status',text_color='scolor', **text_props)
+    #r1 = p.text(x=x(-0.2), y=y(-0.3), text=['status'], **text_props)
+    r1.glyph.text_font_style="bold"
+    r1.glyph.text_font_size = '10pt'
     names = list(dsource.data.keys())
 
     ttips = [(name.title(),'@{}'.format(name)) for name in names]
@@ -85,6 +93,8 @@ def build_layout():
     p.xaxis.major_label_text_font_size = '0pt'  # preferred method for removing tick labels
     p.yaxis.major_label_text_font_size = '0pt'  # preferred method for removing tick labels
     p.axis.major_label_standoff = 0
+    p.outline_line_width = 7
+    p.outline_line_alpha = 0.3
     #p.legend.orientation = "horizontal"
     #p.legend.location ="top_center"
     lo = column(top,p)
@@ -99,11 +109,28 @@ def formatter(x):
 def pmt_update():
     dsource.data = pmt_data.dstore['latest_values']
 
+def status_update():
+    for p in plots:
+        if pmt_data.dstore['live']:
+            p.outline_line_color = "green"
+            p.title = Title(text='PMT HV Status: Online')
+        else:
+            p.outline_line_color = "red"
+            p.title = Title(text='PMT HV Status: Offline',
+                            background_fill_alpha=0.4,
+                             background_fill_color='red')
     #log.info(str(dsource.data))
-
-time.sleep(1.5)
-pmt_update()
-lo = build_layout()
+for _ in range(20):
+    if len(pmt_data.dstore['latest_values']):
+        pmt_update()
+        lo = build_layout()
+        break
+    else:
+        log.info('waiting for data...')
+        time.sleep(0.1)
+else:
+    raise Exception('Failed to load data.')
 doc.add_root(lo)
 doc.title = "Monitor"
 doc.add_periodic_callback(pmt_update, UPDATE)
+doc.add_periodic_callback(status_update, UPDATE/2)

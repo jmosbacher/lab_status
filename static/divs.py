@@ -8,13 +8,13 @@ header = """<table>
 <td>
 
 <table>
-<tr align="center"><font size="20">Direxino</font></tr>
+<tr align="center"><font size="20">SLOW</font></tr>
 <tr>
 <p style="float: center;">
-<img src='bokeh_server/static/Snail.png' hspace="20px" vspace="10px" width='140px,height='140px'>
+<img src='lab_status/static/ninja_turtle.jpg' hspace="20px" vspace="5px" width='100px,height='100px'>
 </p>
 </tr>
-<tr> <td align="center"><font size="20"> SLOW</font></td></tr>
+<tr> <td align="center"><font size="20"> Direxino  </font></td></tr>
 </table>
 </td>
 <td>

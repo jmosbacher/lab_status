@@ -5,7 +5,8 @@ import json
 import itertools
 import sockets
 import time
-DEBUG = True
+import pmt_templates
+DEBUG = False
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -16,28 +17,33 @@ READ_EVERY = 1 #seconds
 ROWS = 4
 RED = 0.05
 YELLOW = 0.01
-dstore = {'latest_values':{}, 'kill':False}
+fields = []
+dstore = {'latest_values':{}, 'kill':False, 'live':False, 'connected': False}
 
 def read_data():
-    if DEBUG:
-        Socket = sockets.FakeSocket
-    else:
-        Socket = sockets.Socket
-
-    sock = Socket(IP,PORT)
+    sock = sockets.Socket(IP,PORT)
     while True:
         if dstore['kill']:
             return
-        #try:
-        sock.connect()
-        raw = sock.receive()
-        rdata = json.loads(raw.decode())
+        try:
+            sock.connect()
+            raw = sock.receive()
+            rdata = json.loads(raw.decode())
+            dstore['connected'] = True
+        except:
+            dstore['connected'] = False
+            dstore['live'] = False
+            rdata = pmt_templates.all_off
         #log.info(type(rdata))
 
         data = {}
-        if 'Vmeas' not in rdata:
-            return
-        nchan = rdata.get('Nch',0)
+        nchan = rdata.get('Nch',-1)
+        if nchan>0 and dstore['connected']:
+            dstore['live']=True
+        else:
+            rdata = pmt_templates.all_off
+            nchan = rdata.get('Nch',24)
+            dstore['live']=False
         cols = nchan//ROWS
         rcs = list(itertools.product(range(ROWS),range(cols)))
         data['row'] = [t[0]+1 for t in rcs]
@@ -54,6 +60,10 @@ def read_data():
         data['idiff'] = [abs((m-s)/s) if s else 0. for m,s in zip(data['Cmeas'], data['Cset'])]
         data['vcolor'] = ['green' if d<YELLOW else 'yellow' if d<RED else 'red' for d in data['vdiff']]
         data['icolor'] = ['green' if d<YELLOW else 'yellow' if d<RED else 'red' for d in data['idiff']]
+        data['boxcolor'] = ['red' if s=='sos' else 'yello' if s=='trip' else 'grey' for s in data['chStat']]
+        data['scolor'] = ['red' if s=='sos' else 'yello' if s=='trip' else 'green' if s=='on' else 'black' for s in data['chStat']]
+        data['ccolor'] = ['green' if c else 'red' for c in data['chControl']]
+        data['status'] = ['Status: {}'.format(x) for x in data['chStat']]
         dstore['latest_values'] = data
         time.sleep(READ_EVERY)
         #log.info(str(data))
