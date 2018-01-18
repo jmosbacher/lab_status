@@ -114,10 +114,10 @@ def status_update():
     for p in plots:
         live = 'Online' if pmt_data.dstore['live'] else 'Offline'
         stat = 'Connected' if pmt_data.dstore['connected'] else 'Disconnected'
-        p.title.text = 'PMT HV Status: {}                            Communication Status: {}'.format(live, stat)
+        p.title.text = 'PMT HV Status: {}                 Communication Status: {}'.format(live, stat)
         if pmt_data.dstore['live']:
             p.outline_line_color = "green"
-            p.outline_line_color = "green"
+            p.background_fill_color = "green"
         else:
             p.outline_line_color = "red"
             p.title.background_fill_color='red'
