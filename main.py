@@ -120,7 +120,6 @@ def status_update():
             p.outline_line_color = "green"
         else:
             p.outline_line_color = "red"
-            p.title.text='PMT HV Status: Offline'
             p.title.background_fill_color='red'
             
     #log.info(str(dsource.data))
