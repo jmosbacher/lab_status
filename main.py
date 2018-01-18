@@ -11,7 +11,6 @@ from bokeh.layouts import widgetbox
 from bokeh.models.widgets import CheckboxGroup, CheckboxButtonGroup, Select
 from bokeh.palettes import Spectral11
 import time
-import redis
 import json
 from functools import partial
 from collections import defaultdict
@@ -95,6 +94,7 @@ def build_layout():
     p.axis.major_label_standoff = 0
     p.outline_line_width = 7
     p.outline_line_alpha = 0.3
+    p.title.background_fill_alpha=0.4
     p.title.text_font_size = "25px"
     #p.legend.orientation = "horizontal"
     #p.legend.location ="top_center"
@@ -112,15 +112,17 @@ def pmt_update():
 
 def status_update():
     for p in plots:
+        live = 'Online' if pmt_data.dstore['live'] else 'Offline'
+        stat = 'Connected' if pmt_data.dstore['connected'] else 'Disconnected'
+        p.title.text = 'PMT HV Status: {}              Communication Status: {}'.format(live, stat)
         if pmt_data.dstore['live']:
             p.outline_line_color = "green"
-            p.title.text = 'PMT HV Status: Online'
-
+            p.outline_line_color = "green"
         else:
             p.outline_line_color = "red"
             p.title.text='PMT HV Status: Offline'
-            p.title.background_fill_alpha=0.4
             p.title.background_fill_color='red'
+            
     #log.info(str(dsource.data))
 for _ in range(20):
     if len(pmt_data.dstore['latest_values']):
